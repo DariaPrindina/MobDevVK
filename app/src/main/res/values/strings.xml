@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">MobDevVK</string>
+    <string name="second_activity_label">Вторая Activity</string>
+
+    <string name="input_hint">Текст или номер телефона</string>
+    <string name="open_second_activity">Открыть вторую Activity</string>
+    <string name="call_friend">Позвонить другу</string>
+    <string name="share_text">Поделиться текстом</string>
+    <string name="share_chooser_title">Поделиться через…</string>
+
+    <string name="error_empty_text">Введите текст</string>
+    <string name="error_empty_phone">Введите номер телефона</string>
+    <string name="error_invalid_phone">Некорректный номер: допустимы цифры, +, пробелы, скобки и дефисы (3–15 цифр)</string>
+    <string name="error_no_dialer">Не найдено приложение для звонков</string>
+    <string name="error_no_share_app">Не найдено приложение, чтобы поделиться</string>
+
+    <string name="received_text_title">Полученный текст:</string>
+    <string name="no_text_received">Текст не был передан</string>
 </resources>
