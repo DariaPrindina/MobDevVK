@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.mobdevvk.data.apps
-import com.example.mobdevvk.ui.applist.AppListScreen
+import com.example.mobdevvk.ui.navigation.AppNavHost
 import com.example.mobdevvk.ui.theme.MobDevVKTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MobDevVKTheme {
-                AppListScreen(apps = apps)
+                AppNavHost()
             }
         }
     }

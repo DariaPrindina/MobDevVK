@@ -2,6 +2,7 @@ package com.example.mobdevvk.ui.applist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.mobdevvk.R
 import com.example.mobdevvk.data.AppInfo
@@ -40,7 +42,11 @@ import com.example.mobdevvk.data.apps
 import com.example.mobdevvk.ui.theme.MobDevVKTheme
 
 @Composable
-fun AppListScreen(apps: List<AppInfo>, modifier: Modifier = Modifier) {
+fun AppListScreen(
+    apps: List<AppInfo>,
+    onAppClick: (AppInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         topBar = { AppListToolbar() },
         modifier = modifier.fillMaxSize(),
@@ -50,7 +56,7 @@ fun AppListScreen(apps: List<AppInfo>, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxSize(),
         ) {
             items(apps, key = { it.id }) { app ->
-                AppListItem(app = app)
+                AppListItem(app = app, onClick = { onAppClick(app) })
                 HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
             }
         }
@@ -92,11 +98,16 @@ private fun AppListToolbar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AppListItem(app: AppInfo, modifier: Modifier = Modifier) {
+fun AppListItem(
+    app: AppInfo,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         AppIcon(app)
@@ -121,19 +132,23 @@ private fun AppListItem(app: AppInfo, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AppIcon(app: AppInfo, modifier: Modifier = Modifier) {
+fun AppIcon(
+    app: AppInfo,
+    modifier: Modifier = Modifier,
+    size: Dp = 56.dp,
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .size(size)
+            .clip(RoundedCornerShape(size / 4))
             .background(app.iconColor),
     ) {
         Icon(
             imageVector = app.icon,
             contentDescription = app.name,
             tint = Color.White,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(size * 4 / 7),
         )
     }
 }
@@ -158,6 +173,6 @@ private fun CategoryChip(title: String, modifier: Modifier = Modifier) {
 @Composable
 private fun AppListScreenPreview() {
     MobDevVKTheme {
-        AppListScreen(apps = apps)
+        AppListScreen(apps = apps, onAppClick = {})
     }
 }
