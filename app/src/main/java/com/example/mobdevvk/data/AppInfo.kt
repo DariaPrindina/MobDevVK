@@ -6,10 +6,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 data class AppInfo(
     val id: String,
     val name: String,
+    val developer: String,
     val description: String,
     val category: Category,
+    val ageRating: Int,
+    val size: Float,
     val icon: ImageVector,
     val iconColor: Color,
+    val screenshotUrlList: List<String> = emptyList(),
 )
 
 enum class Category(val title: String) {
