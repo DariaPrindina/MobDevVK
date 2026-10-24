@@ -29,7 +29,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     ) {
         composable<AppListRoute> {
             AppListScreen(
-                apps = apps,
                 onAppClick = { app -> navController.navigate(AppDetailsRoute(app.id)) },
             )
         }
