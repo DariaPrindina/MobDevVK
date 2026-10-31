@@ -14,4 +14,18 @@
     <string name="app_details_similar_apps">Вам может понравиться</string>
     <string name="app_details_download">Скачать</string>
     <string name="app_details_showcase">Витрина</string>
+
+    <string name="category_app">Приложения</string>
+    <string name="category_game">Игры</string>
+    <string name="category_productivity">Производительность</string>
+    <string name="category_social">Социальные сети</string>
+    <string name="category_education">Образование</string>
+    <string name="category_music">Музыка</string>
+    <string name="category_video">Видео</string>
+    <string name="category_health">Здоровье</string>
+    <string name="category_news">Новости</string>
+    <string name="category_books">Книги</string>
+    <string name="category_finance">Финансы</string>
+    <string name="category_maps">Карты</string>
+    <string name="category_shopping">Покупки</string>
 </resources>
