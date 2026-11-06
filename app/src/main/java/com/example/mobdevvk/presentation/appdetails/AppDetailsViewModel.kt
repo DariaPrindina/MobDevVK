@@ -6,14 +6,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.mobdevvk.domain.AppRepository
 import com.example.mobdevvk.presentation.navigation.AppDetailsRoute
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AppDetailsViewModel(
+@HiltViewModel
+class AppDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     repository: AppRepository,
 ) : ViewModel() {
