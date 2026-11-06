@@ -1,6 +1,8 @@
 package com.example.mobdevvk.data
 
-class AppLocalDataSource {
+import javax.inject.Inject
+
+class AppLocalDataSource @Inject constructor() {
 
     fun getApps(): List<AppDto> = apps
 
