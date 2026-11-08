@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -34,17 +33,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mobdevvk.R
 import com.example.mobdevvk.domain.AppInfo
-import com.example.mobdevvk.presentation.common.appIcon
+import com.example.mobdevvk.presentation.common.ErrorContent
+import com.example.mobdevvk.presentation.common.LoadingContent
 import com.example.mobdevvk.presentation.common.previewApps
 import com.example.mobdevvk.presentation.common.titleRes
 import com.example.mobdevvk.presentation.theme.MobDevVKTheme
@@ -67,6 +68,7 @@ fun AppListScreen(
         state = state,
         snackbarHostState = snackbarHostState,
         onToolbarClick = viewModel::onToolbarClick,
+        onRetryClick = viewModel::loadApps,
         onAppClick = onAppClick,
     )
 }
@@ -94,6 +96,7 @@ fun AppListContent(
     state: AppListState,
     snackbarHostState: SnackbarHostState,
     onToolbarClick: () -> Unit,
+    onRetryClick: () -> Unit,
     onAppClick: (AppInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -102,13 +105,34 @@ fun AppListContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            items(state.apps, key = { it.id }) { app ->
-                AppListItem(app = app, onClick = { onAppClick(app) })
-                HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+        when (state) {
+            is AppListState.Loading -> {
+                LoadingContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                )
+            }
+
+            is AppListState.Error -> {
+                ErrorContent(
+                    onRetryClick = onRetryClick,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                )
+            }
+
+            is AppListState.Content -> {
+                LazyColumn(
+                    contentPadding = innerPadding,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    items(state.apps, key = { it.id }) { app ->
+                        AppListItem(app = app, onClick = { onAppClick(app) })
+                        HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+                    }
+                }
             }
         }
     }
@@ -192,20 +216,15 @@ fun AppIcon(
     modifier: Modifier = Modifier,
     size: Dp = 56.dp,
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
+    AsyncImage(
+        model = app.iconUrl,
+        contentDescription = app.name,
+        contentScale = ContentScale.Crop,
         modifier = modifier
             .size(size)
             .clip(RoundedCornerShape(size / 4))
-            .background(Color(app.iconColor)),
-    ) {
-        Icon(
-            imageVector = appIcon(app.iconName),
-            contentDescription = app.name,
-            tint = Color.White,
-            modifier = Modifier.size(size * 4 / 7),
-        )
-    }
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+    )
 }
 
 @Composable
@@ -229,9 +248,10 @@ private fun CategoryChip(title: String, modifier: Modifier = Modifier) {
 private fun AppListScreenPreview() {
     MobDevVKTheme {
         AppListContent(
-            state = AppListState(apps = previewApps),
+            state = AppListState.Content(previewApps),
             snackbarHostState = remember { SnackbarHostState() },
             onToolbarClick = {},
+            onRetryClick = {},
             onAppClick = {},
         )
     }

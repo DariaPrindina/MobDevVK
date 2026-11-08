@@ -1,22 +1,30 @@
 package com.example.mobdevvk.data
 
+import com.example.mobdevvk.domain.AppDetails
 import com.example.mobdevvk.domain.AppInfo
 import com.example.mobdevvk.domain.AppRepository
 import javax.inject.Inject
 
 class AppRepositoryImpl @Inject constructor(
-    private val dataSource: AppLocalDataSource,
+    private val api: AppApi,
     private val mapper: AppMapper,
 ) : AppRepository {
 
-    override fun getApps(): List<AppInfo> =
-        dataSource.getApps().map(mapper::toDomain)
+    private var cachedApps: List<AppInfo>? = null
 
-    override fun getApp(id: String): AppInfo? =
-        dataSource.getApps().firstOrNull { it.id == id }?.let(mapper::toDomain)
+    override suspend fun getApps(): List<AppInfo> =
+        cachedApps ?: api.getCatalog().map(mapper::toDomain).also { cachedApps = it }
 
-    override fun getShowcaseApps(): List<AppInfo> {
-        val apps = getApps().associateBy { it.id }
-        return dataSource.getShowcaseAppIds().mapNotNull { apps[it] }
+    override suspend fun getApp(id: String): AppInfo? =
+        getApps().firstOrNull { it.id == id }
+
+    override suspend fun getShowcaseApps(): List<AppInfo> =
+        getApps().take(SHOWCASE_SIZE)
+
+    override suspend fun getAppDetails(id: String): AppDetails =
+        mapper.toDomain(api.getAppDetails(id))
+
+    private companion object {
+        const val SHOWCASE_SIZE = 9
     }
 }

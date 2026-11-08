@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.example.mobdevvk.domain.AppRepository
 import com.example.mobdevvk.presentation.navigation.AppDetailsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,22 +19,38 @@ import javax.inject.Inject
 @HiltViewModel
 class AppDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repository: AppRepository,
+    private val repository: AppRepository,
 ) : ViewModel() {
 
     private val appId = savedStateHandle.toRoute<AppDetailsRoute>().appId
 
-    private val _state = MutableStateFlow(
-        AppDetailsState(
-            app = checkNotNull(repository.getApp(appId)),
-            similarApps = repository.getApps().filter { it.id != appId },
-            showcaseApps = repository.getShowcaseApps(),
-        )
-    )
+    private val _state = MutableStateFlow<AppDetailsState>(AppDetailsState.Loading)
     val state = _state.asStateFlow()
 
     private val _events = Channel<AppDetailsEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
+
+    init {
+        loadApp()
+    }
+
+    fun loadApp() {
+        viewModelScope.launch {
+            _state.value = AppDetailsState.Loading
+            _state.value = try {
+                val app = checkNotNull(repository.getApp(appId))
+                AppDetailsState.Content(
+                    app = app,
+                    similarApps = repository.getApps().filter { it.id != appId },
+                    showcaseApps = repository.getShowcaseApps(),
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                AppDetailsState.Error
+            }
+        }
+    }
 
     fun showUnderDevelopmentMessage() {
         viewModelScope.launch {
@@ -42,6 +59,12 @@ class AppDetailsViewModel @Inject constructor(
     }
 
     fun collapseDescription() {
-        _state.update { it.copy(descriptionCollapsed = true) }
+        _state.update { current ->
+            if (current is AppDetailsState.Content) {
+                current.copy(descriptionCollapsed = true)
+            } else {
+                current
+            }
+        }
     }
 }
