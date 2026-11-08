@@ -2,8 +2,9 @@ package com.example.mobdevvk.data
 
 import com.example.mobdevvk.domain.AppInfo
 import com.example.mobdevvk.domain.Category
+import javax.inject.Inject
 
-class AppMapper {
+class AppMapper @Inject constructor() {
 
     fun toDomain(dto: AppDto): AppInfo = AppInfo(
         id = dto.id,

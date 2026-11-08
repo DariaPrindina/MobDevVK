@@ -2,8 +2,9 @@ package com.example.mobdevvk.data
 
 import com.example.mobdevvk.domain.AppInfo
 import com.example.mobdevvk.domain.AppRepository
+import javax.inject.Inject
 
-class AppRepositoryImpl(
+class AppRepositoryImpl @Inject constructor(
     private val dataSource: AppLocalDataSource,
     private val mapper: AppMapper,
 ) : AppRepository {
