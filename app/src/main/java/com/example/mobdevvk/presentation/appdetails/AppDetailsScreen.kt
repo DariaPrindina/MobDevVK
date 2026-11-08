@@ -16,6 +16,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mobdevvk.R
 import com.example.mobdevvk.domain.AppInfo
+import com.example.mobdevvk.presentation.common.ErrorContent
+import com.example.mobdevvk.presentation.common.LoadingContent
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -38,22 +40,38 @@ fun AppDetailsScreen(
         },
         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
     ) { contentPadding ->
-        AppDetailsContent(
-            app = state.app,
-            similarApps = state.similarApps,
-            showcaseApps = state.showcaseApps,
-            descriptionCollapsed = state.descriptionCollapsed,
-            onBackClick = onBackClick,
-            onShareClick = viewModel::showUnderDevelopmentMessage,
-            onInstallClick = viewModel::showUnderDevelopmentMessage,
-            onReadMoreClick = viewModel::collapseDescription,
-            onDeveloperClick = viewModel::showUnderDevelopmentMessage,
-            onSimilarAppDownloadClick = { viewModel.showUnderDevelopmentMessage() },
-            onShowcaseAppClick = onShowcaseAppClick,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
-        )
+        val contentModifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+
+        when (val currentState = state) {
+            is AppDetailsState.Loading -> {
+                LoadingContent(modifier = contentModifier)
+            }
+
+            is AppDetailsState.Error -> {
+                ErrorContent(
+                    onRetryClick = viewModel::loadApp,
+                    modifier = contentModifier,
+                )
+            }
+
+            is AppDetailsState.Content -> {
+                AppDetailsContent(
+                    app = currentState.app,
+                    similarApps = currentState.similarApps,
+                    showcaseApps = currentState.showcaseApps,
+                    descriptionCollapsed = currentState.descriptionCollapsed,
+                    onBackClick = onBackClick,
+                    onShareClick = viewModel::showUnderDevelopmentMessage,
+                    onInstallClick = viewModel::showUnderDevelopmentMessage,
+                    onReadMoreClick = viewModel::collapseDescription,
+                    onSimilarAppDownloadClick = { viewModel.showUnderDevelopmentMessage() },
+                    onShowcaseAppClick = onShowcaseAppClick,
+                    modifier = contentModifier,
+                )
+            }
+        }
     }
 }
 

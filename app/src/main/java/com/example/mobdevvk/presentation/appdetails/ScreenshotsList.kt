@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.mobdevvk.R
-import com.example.mobdevvk.presentation.common.previewApp
 import com.example.mobdevvk.presentation.theme.MobDevVKTheme
 
 @Composable
@@ -57,7 +56,10 @@ fun ScreenshotsList(
 private fun Preview() {
     MobDevVKTheme {
         ScreenshotsList(
-            screenshotUrlList = previewApp.screenshotUrlList,
+            screenshotUrlList = listOf(
+                "https://fastly.picsum.photos/id/2/200/200.jpg?hmac=isSWZUpv7D1D156XcADPOCZlfCG9mmvb8OlXFdvLdK0",
+                "https://fastly.picsum.photos/id/3/200/200.jpg?hmac=N5yYUNYl5gOUcaMmTtnNNtx839TN2qaNM4SaXhQl65U",
+            ),
             contentPadding = PaddingValues(horizontal = 16.dp),
         )
     }
