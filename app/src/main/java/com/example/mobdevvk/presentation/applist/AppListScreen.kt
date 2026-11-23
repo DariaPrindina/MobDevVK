@@ -19,7 +19,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -69,6 +74,7 @@ fun AppListScreen(
         snackbarHostState = snackbarHostState,
         onToolbarClick = viewModel::onToolbarClick,
         onRetryClick = viewModel::loadApps,
+        onLoadRatingsClick = viewModel::loadRatings,
         onAppClick = onAppClick,
     )
 }
@@ -97,6 +103,7 @@ fun AppListContent(
     snackbarHostState: SnackbarHostState,
     onToolbarClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onLoadRatingsClick: (RatingsLoadMode) -> Unit,
     onAppClick: (AppInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -124,13 +131,25 @@ fun AppListContent(
             }
 
             is AppListState.Content -> {
-                LazyColumn(
-                    contentPadding = innerPadding,
-                    modifier = Modifier.fillMaxSize(),
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 ) {
-                    items(state.apps, key = { it.id }) { app ->
-                        AppListItem(app = app, onClick = { onAppClick(app) })
-                        HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+                    RatingsControls(
+                        loading = state.ratingsLoading,
+                        result = state.ratingsResult,
+                        onLoadClick = onLoadRatingsClick,
+                    )
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(state.apps, key = { it.id }) { app ->
+                            AppListItem(
+                                app = app,
+                                rating = state.ratings[app.id],
+                                onClick = { onAppClick(app) },
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+                        }
                     }
                 }
             }
@@ -181,6 +200,7 @@ fun AppListItem(
     app: AppInfo,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    rating: Float? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -192,12 +212,19 @@ fun AppListItem(
         AppIcon(app)
         Spacer(Modifier.width(16.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = app.name,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = app.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (rating != null) {
+                    Spacer(Modifier.width(8.dp))
+                    Rating(rating)
+                }
+            }
             Text(
                 text = app.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -228,6 +255,75 @@ fun AppIcon(
 }
 
 @Composable
+private fun Rating(rating: Float, modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = Color(0xFFFFB300),
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(2.dp))
+        Text(
+            text = stringResource(R.string.rating_format, rating),
+            style = MaterialTheme.typography.labelLarge,
+        )
+    }
+}
+
+@Composable
+private fun RatingsControls(
+    loading: Boolean,
+    result: RatingsResult?,
+    onLoadClick: (RatingsLoadMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = { onLoadClick(RatingsLoadMode.SEQUENTIAL) },
+                enabled = !loading,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.ratings_sequential))
+            }
+            OutlinedButton(
+                onClick = { onLoadClick(RatingsLoadMode.PARALLEL) },
+                enabled = !loading,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.ratings_parallel))
+            }
+        }
+        when {
+            loading -> Text(
+                text = stringResource(R.string.ratings_loading),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+
+            result != null -> Text(
+                text = stringResource(
+                    when (result.mode) {
+                        RatingsLoadMode.SEQUENTIAL -> R.string.ratings_result_sequential
+                        RatingsLoadMode.PARALLEL -> R.string.ratings_result_parallel
+                    },
+                    result.timeMillis,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
 private fun CategoryChip(title: String, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(8.dp),
@@ -248,10 +344,14 @@ private fun CategoryChip(title: String, modifier: Modifier = Modifier) {
 private fun AppListScreenPreview() {
     MobDevVKTheme {
         AppListContent(
-            state = AppListState.Content(previewApps),
+            state = AppListState.Content(
+                apps = previewApps,
+                ratings = previewApps.associate { it.id to 4.5f },
+            ),
             snackbarHostState = remember { SnackbarHostState() },
             onToolbarClick = {},
             onRetryClick = {},
+            onLoadRatingsClick = {},
             onAppClick = {},
         )
     }

@@ -3,10 +3,14 @@ package com.example.mobdevvk.data
 import com.example.mobdevvk.domain.AppDetails
 import com.example.mobdevvk.domain.AppInfo
 import com.example.mobdevvk.domain.AppRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
 class AppRepositoryImpl @Inject constructor(
     private val api: AppApi,
+    private val ratingApi: RatingApi,
     private val mapper: AppMapper,
 ) : AppRepository {
 
@@ -23,6 +27,21 @@ class AppRepositoryImpl @Inject constructor(
 
     override suspend fun getAppDetails(id: String): AppDetails =
         mapper.toDomain(api.getAppDetails(id))
+
+    override suspend fun loadRatingsSequentially(ids: List<String>): Map<String, Float> {
+        val ratings = mutableMapOf<String, Float>()
+        for (id in ids) {
+            ratings[id] = ratingApi.getRating(id)
+        }
+        return ratings
+    }
+
+    override suspend fun loadRatingsInParallel(ids: List<String>): Map<String, Float> =
+        coroutineScope {
+            ids.map { id -> async { id to ratingApi.getRating(id) } }
+                .awaitAll()
+                .toMap()
+        }
 
     private companion object {
         const val SHOWCASE_SIZE = 9
