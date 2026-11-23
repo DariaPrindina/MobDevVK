@@ -4,6 +4,8 @@ import androidx.compose.runtime.Immutable
 import com.example.mobdevvk.domain.AppInfo
 
 @Immutable
-data class AppListState(
-    val apps: List<AppInfo> = emptyList(),
-)
+sealed interface AppListState {
+    data object Loading : AppListState
+    data object Error : AppListState
+    data class Content(val apps: List<AppInfo>) : AppListState
+}

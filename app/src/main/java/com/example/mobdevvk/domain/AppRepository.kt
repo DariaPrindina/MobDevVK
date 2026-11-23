@@ -1,7 +1,8 @@
 package com.example.mobdevvk.domain
 
 interface AppRepository {
-    fun getApps(): List<AppInfo>
-    fun getApp(id: String): AppInfo?
-    fun getShowcaseApps(): List<AppInfo>
+    suspend fun getApps(): List<AppInfo>
+    suspend fun getApp(id: String): AppInfo?
+    suspend fun getShowcaseApps(): List<AppInfo>
+    suspend fun getAppDetails(id: String): AppDetails
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobdevvk.domain.AppRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,7 @@ class AppListViewModel @Inject constructor(
     private val repository: AppRepository,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AppListState())
+    private val _state = MutableStateFlow<AppListState>(AppListState.Loading)
     val state = _state.asStateFlow()
 
     private val _events = Channel<AppListEvent>(Channel.BUFFERED)
@@ -32,7 +33,16 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private fun loadApps() {
-        _state.value = AppListState(apps = repository.getApps())
+    fun loadApps() {
+        viewModelScope.launch {
+            _state.value = AppListState.Loading
+            _state.value = try {
+                AppListState.Content(repository.getApps())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                AppListState.Error
+            }
+        }
     }
 }
