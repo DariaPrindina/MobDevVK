@@ -3,6 +3,7 @@ package com.example.mobdevvk.presentation.applist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobdevvk.domain.AppRepository
+import com.example.mobdevvk.domain.GetAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +17,7 @@ import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
+    private val getApps: GetAppsUseCase,
     private val repository: AppRepository,
 ) : ViewModel() {
 
@@ -69,7 +71,7 @@ class AppListViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AppListState.Loading
             _state.value = try {
-                AppListState.Content(repository.getApps())
+                AppListState.Content(getApps())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

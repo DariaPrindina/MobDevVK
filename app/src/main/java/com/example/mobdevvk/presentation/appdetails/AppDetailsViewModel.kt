@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.mobdevvk.domain.AppRepository
+import com.example.mobdevvk.domain.GetAppPageUseCase
 import com.example.mobdevvk.presentation.navigation.AppDetailsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AppDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: AppRepository,
+    private val getAppPage: GetAppPageUseCase,
 ) : ViewModel() {
 
     private val appId = savedStateHandle.toRoute<AppDetailsRoute>().appId
@@ -42,11 +42,11 @@ class AppDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = AppDetailsState.Loading
             _state.value = try {
-                val app = checkNotNull(repository.getApp(appId))
+                val page = getAppPage(appId)
                 AppDetailsState.Content(
-                    app = app,
-                    similarApps = repository.getApps().filter { it.id != appId },
-                    showcaseApps = repository.getShowcaseApps(),
+                    app = page.app,
+                    similarApps = page.similarApps,
+                    showcaseApps = page.showcaseApps,
                 )
             } catch (e: CancellationException) {
                 throw e
