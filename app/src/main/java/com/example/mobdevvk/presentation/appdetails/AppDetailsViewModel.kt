@@ -8,6 +8,8 @@ import com.example.mobdevvk.domain.AppRepository
 import com.example.mobdevvk.presentation.navigation.AppDetailsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +31,8 @@ class AppDetailsViewModel @Inject constructor(
 
     private val _events = Channel<AppDetailsEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
+
+    private var installJob: Job? = null
 
     init {
         loadApp()
@@ -52,6 +56,43 @@ class AppDetailsViewModel @Inject constructor(
         }
     }
 
+    fun onInstallClick() {
+        val current = _state.value
+        if (current !is AppDetailsState.Content) return
+
+        when (current.installState) {
+            is InstallState.Installing -> {
+                installJob?.cancel()
+                installJob = null
+                setInstallState(InstallState.NotInstalled)
+            }
+
+            is InstallState.NotInstalled -> {
+                installJob = viewModelScope.launch { emulateInstall() }
+            }
+
+            is InstallState.Installed -> Unit
+        }
+    }
+
+    private suspend fun emulateInstall() {
+        for (progress in 0..100 step INSTALL_STEP) {
+            setInstallState(InstallState.Installing(progress))
+            delay(INSTALL_STEP_DELAY_MS)
+        }
+        setInstallState(InstallState.Installed)
+    }
+
+    private fun setInstallState(installState: InstallState) {
+        _state.update { current ->
+            if (current is AppDetailsState.Content) {
+                current.copy(installState = installState)
+            } else {
+                current
+            }
+        }
+    }
+
     fun showUnderDevelopmentMessage() {
         viewModelScope.launch {
             _events.send(AppDetailsEvent.UnderDevelopment)
@@ -66,5 +107,10 @@ class AppDetailsViewModel @Inject constructor(
                 current
             }
         }
+    }
+
+    private companion object {
+        const val INSTALL_STEP = 5
+        const val INSTALL_STEP_DELAY_MS = 150L
     }
 }

@@ -1,6 +1,8 @@
 package com.example.mobdevvk.di
 
 import com.example.mobdevvk.data.AppRepositoryImpl
+import com.example.mobdevvk.data.FakeRatingApi
+import com.example.mobdevvk.data.RatingApi
 import com.example.mobdevvk.domain.AppRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,8 @@ interface DataModule {
     @Binds
     @Singleton
     fun bindAppRepository(impl: AppRepositoryImpl): AppRepository
+
+    @Binds
+    @Singleton
+    fun bindRatingApi(impl: FakeRatingApi): RatingApi
 }
